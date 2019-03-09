@@ -41,12 +41,12 @@ class zone(dml.Algorithm):
 		url             = "https://opendata.arcgis.com/datasets/b601516d0af44d1c9c7695571a7dca80_0.geojson"
 		gcontext        = ssl.SSLContext()
 		response        = urllib.request.urlopen(url, context=gcontext).read().decode("utf-8")
-		r               = json.loads(response)
+		r_zone          = json.loads(response)
 		repo.createCollection(collection_name)
 		repo["dezhouw_ghonigsb."+collection_name].insert_one(r)
 		print("Success: [{}]".format(collection_name))
 
-		# census
+		# zillow_boston_neighborhood
 		collection_name = "zillow_boston_neighborhood"
 		params          = {
 			'zws-id'   : dml.auth["census"]["Zillow API"]["zws-id"],
@@ -58,11 +58,24 @@ class zone(dml.Algorithm):
 		url             = "https://www.zillow.com/webservice/GetRegionChildren.htm?"
 		gcontext        = ssl.SSLContext()
 		response        = urllib.request.urlopen(url, args, context=gcontext).read().decode("utf-8")
-		r               = xmltodict.parse(response)
+		r_zillow        = xmltodict.parse(response)
 		repo.createCollection(collection_name)
 		repo["dezhouw_ghonigsb."+collection_name].insert_one(r)
 		print("Success: [{}]".format(collection_name))
 
+
+		#Transformation
+		list = []
+		def toList(d):
+			for k, v in d.items():
+				if isinstance(v, dict):
+					toList(v)
+				else:
+					list.append("{0} : {1}".format(k, v))
+					toList(r_zillow)
+		print(list)
+		for i in range(len(list)):
+			print(list[i])
 
 
         # Disconnect database for data safety
@@ -84,15 +97,12 @@ class zone(dml.Algorithm):
 		doc.add_namespace('zil', 'https://www.zillow.com/webservice/')
 		doc.add_namespace('gov', 'http://datamechanics.io/data/ghonigsb_dezhouw/')
 
-		this_script   = doc.agent('alg:dezhouw_ghonigsb#flood', {prov.model.PROV_TYPE:prov.model.PROV['SoftwareAgent'], 'ont:Extension':'py'})
+		this_script   = doc.agent('alg:dezhouw_ghonigsb#zone', {prov.model.PROV_TYPE:prov.model.PROV['SoftwareAgent'], 'ont:Extension':'py'})
 		resource1     = doc.entity('opd:boston', {'prov:label':'Opendata Website', prov.model.PROV_TYPE:'ont:DataResource', 'ont:Extension':'geojson'})
 		resource2     = doc.entity('zil:boston', {'prov:label':'Zillow API',       prov.model.PROV_TYPE:'ont:DataResource', 'ont:Extension':'xml'})
 		resource3     = doc.entity('gov:boston', {'prov:label':'MassGov',          prov.model.PROV_TYPE:'ont:DataResource', 'ont:Extension':'csv'})
-		get_seaAnnual = doc.activity('log:uuid'+str(uuid.uuid4()), startTime, endTime)
-		get_seaTide   = doc.activity('log:uuid'+str(uuid.uuid4()), startTime, endTime)
 		get_zoning    = doc.activity('log:uuid'+str(uuid.uuid4()), startTime, endTime)
 		get_zillow    = doc.activity('log:uuid'+str(uuid.uuid4()), startTime, endTime)
-		get_massGov   = doc.activity('log:uuid'+str(uuid.uuid4()), startTime, endTime)
 
 		doc.wasAssociatedWith(get_zoning,    this_script)
 		doc.wasAssociatedWith(get_zillow,    this_script)
@@ -128,8 +138,8 @@ class zone(dml.Algorithm):
 
 if __name__ == '__main__':
 	try:
-		print(flood.execute())
-		doc = flood.provenance()
+		print(zone.execute())
+		doc = zone.provenance()
 		print(doc.get_provn())
 		print(json.dumps(json.loads(doc.serialize()), indent=4))
 	except Exception as e:
