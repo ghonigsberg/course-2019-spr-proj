@@ -43,6 +43,11 @@ class zone(dml.Algorithm):
 		r_zone          = json.loads(response)
 		print("Success: [{}]".format(collection_name))
 
+		# >>> Save neighborhood data into MongoDB
+		repo.dropCollection(collection_name)
+		repo.createCollection(collection_name)
+		repo["dezhouw_ghonigsb."+collection_name].insert_one({"neighborhood": r_zone})
+
 		# zillow_boston_neighborhood
 		collection_name = "zillow_boston_neighborhood"
 		params          = {
@@ -57,12 +62,6 @@ class zone(dml.Algorithm):
 		response        = urllib.request.urlopen(url, args, context=gcontext).read().decode("utf-8")
 		r_zillow        = xmltodict.parse(response)
 		print("Success: [{}]".format(collection_name))
-
-		# >>> Save neighborhood data into MongoDB
-		repo.dropCollection(collection_name)
-		repo.createCollection(collection_name)
-		repo["dezhouw_ghonigsb."+collection_name].insert_one({"neighborhood": r_zillow})
-	
 
 		collection_name = "zone"
 		repo.dropCollection(collection_name)
