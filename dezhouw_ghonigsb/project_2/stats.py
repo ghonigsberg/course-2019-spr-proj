@@ -38,7 +38,7 @@ class stats(dml.Algorithm):
 		repo["dezhouw_ghonigsb.transportation"]
 
     #get transportion and flood data from db
-		trans = []
+		trans = [] #array of objects containing loc (x,y) and 'daily' (an int for # of cars)
 		flood = ...
     
     #list to be built 
