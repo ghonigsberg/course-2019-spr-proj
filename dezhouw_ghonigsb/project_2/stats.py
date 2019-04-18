@@ -38,8 +38,14 @@ class stats(dml.Algorithm):
 		repo["dezhouw_ghonigsb.transportation"]
 
     #get transportion and flood data from db
-		trans = [] #array of objects containing loc (x,y) and 'daily' (an int for # of cars)
-		flood = ...
+		#array of objects containing loc (x,y) and 'daily' (an int for # of cars)
+		trans = []
+		trans_coll = repo["dezhouw_ghonigsb.transportation"].find()
+		for row in trans_coll:
+			trans.append([(row["x"],row["y"]), row["daily"]])
+		flood = repo['dezhouw_ghonigsb.sea_level'].find()[3]\
+		        ['thirty_six_inch_sea_level_rise_10_pct_annual_flood']\
+		        ['features'][0]['geometry']
     
     #list to be built 
 		vals = [] #({1,0} for in flood, num of traffic)
